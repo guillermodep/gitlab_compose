@@ -1,0 +1,49 @@
+web:
+  image: 'gitlab/gitlab-ee:latest'
+  restart: always
+  hostname: 'localhost'
+  shm_size: '2gb'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'https://SERVER'
+        gitlab_rails['smtp_enable'] = true
+        gitlab_rails['smtp_address'] = 'relay server'
+        gitlab_rails['smtp_port'] = 25
+        gitlab_rails['smtp_domain'] = 'relay server'
+        gitlab_rails['smtp_tls'] = false
+        gitlab_rails['smtp_openssl_verify_mode'] = 'none'
+        gitlab_rails['smtp_enable_starttls_auto'] = false
+        gitlab_rails['smtp_ssl'] = false
+        gitlab_rails['smtp_force_ssl'] = false
+        gitlab_rails['rack_attack_git_basic_auth'] = {
+          'enabled' => false
+        }
+        ### LDAP 
+        gitlab_rails['ldap_enabled'] = true
+        gitlab_rails['ldap_servers'] = {
+        'main' => {
+          'label' => 'AD',
+          'host' =>  'HOST LDAP',
+          'port' => 389,
+          'uid' => 'sAMAccountName',
+          'bind_dn' => 'USER',
+          'password' => 'PASSWORD',
+          'active_directory' => true,
+          'base' => 'OU=USERS,OU=USUARIOS,OU=XXX,DC=XXX,DC=XXX,DC=XXX',
+          'group_base' => 'OU=XXX,OU=XXX, DC=XXX, DC=XXX,DC=XXX',
+          'admin_group' => 'GRUPO',
+          'attributes' => {
+            'username' => ['uid', 'userid', 'sAMAccountName'],
+            'email' =>   ['mail', 'email', 'userPrincipalName'],
+            'name' => 'displayName'
+          }
+          }
+          }
+  ports:
+    - '81:80'
+    - '443:443'
+    - '10022:22'
+  volumes:
+    - '$GITLAB_HOME/config:/etc/gitlab'
+    - '$GITLAB_HOME/logs:/var/log/gitlab'
+    - '$GITLAB_HOME/data:/var/opt/gitlab'
